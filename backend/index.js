@@ -16,10 +16,12 @@ connectDB();
 const app = express();
 
 // Enable CORS
-app.use(cors({
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+     credentials: true, // allow cookies/auth if needed
+  })
+);
 
 // Parse JSON
 app.use(express.json());
