@@ -26,7 +26,7 @@ const AuthForm = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${API_BASE}/login`, { email, password });
+      const response = await axios.post(`${API_BASE}login`, { email, password });
       const { token, user } = response.data;
 
       if (token) localStorage.setItem("token", token);
@@ -59,7 +59,7 @@ const AuthForm = () => {
 
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}/signup`, { name, email, password }); // 👈 role removed
+      await axios.post(`${API_BASE}signup`, { name, email, password }); // 👈 role removed
       toast.success("Account created successfully!");
       e.target.reset();
       setIsSignIn(true);
