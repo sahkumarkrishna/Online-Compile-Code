@@ -2,14 +2,13 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // Pages
 import Home from "./pages/Home";
-import AuthForm from "./pages/AuthForm.jsx";
-import AdminDashboard from "./pages/AdminDashboard";
-import WatchDemo from "./pages/WatchDemo.jsx";
-import CodeEditor from "./pages/CodeEditor.jsx";
+import AuthForm from "./pages/AuthForm";
+import WatchDemo from "./pages/WatchDemo";
+import CodeEditor from "./pages/CodeEditor";
 
-import Users from "./pages/Users.jsx";
-import PageNotFound from "../PageNotFound.jsx";
-import CompileCode from "./pages/CompileCode.jsx";
+import PageNotFound from "../PageNotFound";
+import CompileCode from "./pages/CompileCode";
+import Settings from "./pages/Settings";
 
 // Layouts & Components
 import MainLayout from "./Layouts/MainLayout";
@@ -20,24 +19,13 @@ const router = createBrowserRouter([
     path: "/",
     element: <MainLayout />,
     children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: "dashboard",
-        element: (
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        ),
-      },
+      { index: true, element: <Home /> },
       {
         path: "watchDemo",
         element: (
-          <ProtectedRoute>
+          
             <WatchDemo />
-          </ProtectedRoute>
+          
         ),
       },
       {
@@ -48,29 +36,20 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-    
+   
       {
-        path: "users",
+        path: "settings", // ✅ updated to plural
         element: (
           <ProtectedRoute>
-            <Users />
+            <Settings />
           </ProtectedRoute>
         ),
       },
     ],
   },
-  {
-    path: "/login",
-    element: <AuthForm />,
-  },
-  {
-    path: "/compileCode",
-    element: <CompileCode />, // ✅ path should start with "/"
-  },
-  {
-    path: "*",
-    element: <PageNotFound />, // ✅ Catch-all route
-  },
+  { path: "/login", element: <AuthForm /> },
+  { path: "/compileCode", element: <CompileCode /> },
+  { path: "*", element: <PageNotFound /> },
 ]);
 
 function App() {

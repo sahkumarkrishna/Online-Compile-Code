@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const Logout = () => {
   const navigate = useNavigate();
@@ -9,29 +10,29 @@ const Logout = () => {
   useEffect(() => {
     const logoutUser = async () => {
       try {
-        // Make a POST request to backend logout route
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}logout`, {}, {
-          withCredentials: true, // if you're using cookies for auth
+        // POST request to backend logout route
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/logout`, {}, {
+          withCredentials: true, // if using cookies
         });
 
-        // Clear local storage or token if used
+        // Clear local storage or tokens
         localStorage.removeItem("isLoggedIn");
         // localStorage.removeItem("token");
 
-        alert("Logged out successfully");
+        toast.success("Logged out successfully");
 
-        // Redirect to login page
+        // Redirect to login
         navigate("/login");
       } catch (error) {
         console.error("Logout failed:", error);
-        alert("Failed to logout. Try again.");
+        toast.error("Failed to logout. Try again.");
       }
     };
 
     logoutUser();
   }, [navigate]);
 
-  return null;
+  return null; // No UI
 };
 
 export default Logout;

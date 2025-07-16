@@ -62,11 +62,13 @@ const Home = () => {
           <p className="text-gray-700 text-base md:text-lg">
             Write and run code in your favorite languages with a lightning-fast,
             developer-first editor that features real-time previews, intelligent
-            autocompletion, and seamless integrations — all in one sleek platform.
+            autocompletion, and seamless integrations — all in one sleek
+            platform.
           </p>
           <p className="text-gray-600 text-sm md:text-base">
             Whether you're coding in Python, C++, Java, or JavaScript —
-            CompileCode is built to support your workflow and boost your productivity.
+            CompileCode is built to support your workflow and boost your
+            productivity.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
@@ -112,30 +114,34 @@ const Home = () => {
           </h2>
           <p className="text-gray-700 text-base leading-relaxed">
             At <strong>CompileCode</strong>, we believe that coding should be
-            intuitive, accessible, and seamless—whether you're just starting your
-            journey or you're an experienced developer.
+            intuitive, accessible, and seamless—whether you're just starting
+            your journey or you're an experienced developer.
           </p>
           <p className="text-gray-700 text-base leading-relaxed">
-            Built with modern developers in mind, CompileCode eliminates the hassle
-            of switching tools or installing compilers.
+            Built with modern developers in mind, CompileCode eliminates the
+            hassle of switching tools or installing compilers.
           </p>
           <p className="text-gray-700 text-base leading-relaxed">
             With features like <strong>real-time previews</strong>,{" "}
             <strong>intelligent autocompletion</strong>, and{" "}
-            <strong>cloud project storage</strong>, we ensure your workflow stays
-            uninterrupted.
+            <strong>cloud project storage</strong>, we ensure your workflow
+            stays uninterrupted.
           </p>
           <p className="text-gray-700 text-base leading-relaxed">
             We're constantly rolling out new features based on your feedback—
             collaborative coding, version control, and new language support.
           </p>
           <p className="text-gray-700 text-base leading-relaxed">
-            Whether you're a student, solo developer, or a remote team—CompileCode
-            brings you the tools and speed you need to ship faster and smarter.
+            Whether you're a student, solo developer, or a remote
+            team—CompileCode brings you the tools and speed you need to ship
+            faster and smarter.
           </p>
           <p className="text-gray-600 text-sm">
             Ready to code the future?{" "}
-            <Link to="/dashboard" className="text-green-600 font-medium hover:underline">
+            <Link
+              to="/dashboard"
+              className="text-green-600 font-medium hover:underline"
+            >
               Try CompileCode now
             </Link>{" "}
             — it's fast, free, and forever developer-friendly.
@@ -153,7 +159,10 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 flex flex-col lg:flex-row items-center gap-12">
+      <section
+        id="about"
+        className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 flex flex-col lg:flex-row items-center gap-12"
+      >
         <div className="w-full lg:w-1/2 space-y-8">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600">
             Features of CompileCode

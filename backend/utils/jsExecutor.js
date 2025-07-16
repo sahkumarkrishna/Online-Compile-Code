@@ -1,73 +1,173 @@
-const { execFile, exec } = require("child_process");
-const fs = require("fs").promises;
-const os = require("os");
+const fs = require("fs");
 const path = require("path");
+const { v4: uuid } = require("uuid");
+const { exec } = require("child_process");
 
-async function writeTemp(code, ext) {
-  const file = path.join(os.tmpdir(), `run_${Date.now()}.${ext}`);
-  await fs.writeFile(file, code);
-  return file;
+// Ensure temp directory exists
+const tempDir = path.join(__dirname, "../temp");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir);
 }
 
-function measureProcess(cmd, args = []) {
+// Create temporary source file
+const createTempFile = (extension, code) => {
+  const filename = `${uuid()}.${extension}`;
+  const filePath = path.join(tempDir, filename);
+  fs.writeFileSync(filePath, code);
+  return filePath;
+};
+
+// Detect available Python command
+const detectPythonCommand = () => {
+  const candidates = ["python", "python3", "py"];
   return new Promise((resolve, reject) => {
-    const start = process.hrtime();
-    const startMem = process.memoryUsage().heapUsed;
+    const tryNext = (index) => {
+      if (index >= candidates.length) {
+        return reject(new Error("No working Python command found"));
+      }
+      exec(`${candidates[index]} --version`, (err) => {
+        if (!err) return resolve(candidates[index]);
+        tryNext(index + 1);
+      });
+    };
+    tryNext(0);
+  });
+};
 
-    execFile(cmd, args, { timeout: 5000, maxBuffer: 1e6 }, (err, stdout, stderr) => {
-      const elapsed = process.hrtime(start);
-      const endMem = process.memoryUsage().heapUsed;
+// ------------------ JavaScript ------------------
+exports.runJavaScript = async (code) => {
+  return new Promise((resolve, reject) => {
+    const startTime = process.hrtime();
+    const startMemory = process.memoryUsage().rss;
 
-      const executionTime = `${(elapsed[0] * 1e3 + elapsed[1] / 1e6).toFixed(3)}ms`;
-      const memoryUsed = `${((endMem - startMem) / 1024).toFixed(0)}KB`;
+    try {
+      let output = "";
+      const originalLog = console.log;
 
-      if (err) return reject(stderr || err.message);
-      resolve({ stdout, executionTime, memoryUsed });
+      console.log = (...args) => {
+        output += args.join(" ") + "\n";
+      };
+
+      eval(code); // ⚠️ Not safe for production
+
+      console.log = originalLog;
+
+      const [sec, nano] = process.hrtime(startTime);
+      const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
+      const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
+
+      resolve({
+        stdout: output.trim() || "No output",
+        executionTime,
+        memoryUsed,
+      });
+    } catch (err) {
+      console.log = originalLog;
+      reject(new Error("JavaScript Execution Error: " + err.message));
+    }
+  });
+};
+
+// ------------------ Python ------------------
+exports.runPython = async (code) => {
+  const filePath = createTempFile("py", code);
+  const pythonCmd = await detectPythonCommand();
+
+  return new Promise((resolve, reject) => {
+    const startTime = process.hrtime();
+    const startMemory = process.memoryUsage().rss;
+
+    exec(`${pythonCmd} "${filePath}"`, (err, stdout, stderr) => {
+      const [sec, nano] = process.hrtime(startTime);
+      const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
+      const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
+
+      if (err || stderr) {
+        const errorMsg = stderr || err.message;
+        return reject(new Error("Python Execution Error: " + errorMsg));
+      }
+
+      resolve({
+        stdout: stdout.trim() || "No output",
+        executionTime,
+        memoryUsed,
+      });
     });
   });
-}
+};
 
-async function runJavaScript(code) {
-  const file = await writeTemp(code, "js");
-  try {
-    return await measureProcess("node", [file]);
-  } finally {
-    fs.unlink(file).catch(() => {});
-  }
-}
+// ------------------ C / C++ ------------------
+exports.runC_CPP = async (code, language) => {
+  const extension = language === "c" ? "c" : "cpp";
+  const filePath = createTempFile(extension, code);
+  const outputPath = filePath.replace(`.${extension}`, "");
 
-async function runPython(code) {
-  const file = await writeTemp(code, "py");
-  try {
-    return await measureProcess("python", [file]);
-  } finally {
-    fs.unlink(file).catch(() => {});
-  }
-}
+  return new Promise((resolve, reject) => {
+    const compileCmd = language === "c"
+      ? `gcc "${filePath}" -o "${outputPath}"`
+      : `g++ "${filePath}" -o "${outputPath}"`;
 
-async function runC_CPP(code, lang) {
-  const ext = lang === "c" ? "c" : "cpp";
-  const file = await writeTemp(code, ext);
-  const exe = file.replace(`.${ext}`, "");
-  try {
-    await exec(`gcc ${file} -o ${exe}`);
-    return await measureProcess(exe);
-  } finally {
-    fs.unlink(file).catch(() => {});
-    fs.unlink(exe).catch(() => {});
-  }
-}
+    exec(compileCmd, (err, stdout, stderr) => {
+      if (err || stderr) {
+        const errorMsg = stderr || err.message;
+        return reject(new Error(`${language.toUpperCase()} Compilation Error: ${errorMsg}`));
+      }
 
-async function runJava(code) {
-  const file = await writeTemp(code, "java");
-  const dir = path.dirname(file);
-  try {
-    await exec(`javac ${file}`);
-    return await measureProcess("java", ["-cp", dir, "Main"]);
-  } finally {
-    fs.unlink(file).catch(() => {});
-    fs.unlink(path.join(dir, "Main.class")).catch(() => {});
-  }
-}
+      const startTime = process.hrtime();
+      const startMemory = process.memoryUsage().rss;
 
-module.exports = { runJavaScript, runPython, runC_CPP, runJava };
+      exec(`"${outputPath}"`, (err2, stdout2, stderr2) => {
+        const [sec, nano] = process.hrtime(startTime);
+        const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
+        const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
+
+        if (err2 || stderr2) {
+          const errorMsg = stderr2 || err2.message;
+          return reject(new Error(`${language.toUpperCase()} Runtime Error: ${errorMsg}`));
+        }
+
+        resolve({
+          stdout: stdout2.trim() || "No output",
+          executionTime,
+          memoryUsed,
+        });
+      });
+    });
+  });
+};
+
+// ------------------ Java ------------------
+exports.runJava = async (code) => {
+  const filePath = createTempFile("java", code);
+  const dir = path.dirname(filePath);
+  const className = path.basename(filePath, ".java");
+
+  return new Promise((resolve, reject) => {
+    exec(`javac "${filePath}"`, (err, stdout, stderr) => {
+      if (err || stderr) {
+        const errorMsg = stderr || err.message;
+        return reject(new Error("Java Compilation Error: " + errorMsg));
+      }
+
+      const startTime = process.hrtime();
+      const startMemory = process.memoryUsage().rss;
+
+      exec(`java -cp "${dir}" ${className}`, (err2, stdout2, stderr2) => {
+        const [sec, nano] = process.hrtime(startTime);
+        const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
+        const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
+
+        if (err2 || stderr2) {
+          const errorMsg = stderr2 || err2.message;
+          return reject(new Error("Java Runtime Error: " + errorMsg));
+        }
+
+        resolve({
+          stdout: stdout2.trim() || "No output",
+          executionTime,
+          memoryUsed,
+        });
+      });
+    });
+  });
+};

@@ -11,11 +11,7 @@ const AuthForm = () => {
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const role = localStorage.getItem("userRole");
-    if (isLoggedIn) {
-      if (role === "Admin") navigate("/dashboard");
-      else navigate("/");
-    }
+    if (isLoggedIn) navigate("/");
   }, [navigate]);
 
   const handleSignIn = async (e) => {
@@ -30,20 +26,18 @@ const AuthForm = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${API_BASE}login`, { email, password });
+      const response = await axios.post(`${API_BASE}/login`, { email, password });
       const { token, user } = response.data;
 
       if (token) localStorage.setItem("token", token);
       if (user) {
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userRole", user.role);
+        // Removed: localStorage.setItem("userRole", user.role);
       }
 
       toast.success("Sign In Successful!");
       e.target.reset();
-
-      if (user.role === "Admin") navigate("/dashboard");
-      else navigate("/");
+      navigate("/"); // 👈 Default navigation
     } catch (error) {
       const msg = error.response?.data?.message || "Sign In failed";
       toast.error(msg);
@@ -57,16 +51,15 @@ const AuthForm = () => {
     const name = e.target["signup-name"].value;
     const email = e.target["signup-email"].value;
     const password = e.target["signup-password"].value;
-    const role = e.target["signup-role"].value;
 
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password) {
       toast.error("Please fill all fields");
       return;
     }
 
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}signup`, { name, email, password, role });
+      await axios.post(`${API_BASE}/signup`, { name, email, password }); // 👈 role removed
       toast.success("Account created successfully!");
       e.target.reset();
       setIsSignIn(true);
@@ -99,7 +92,7 @@ const AuthForm = () => {
           </button>
         </div>
 
-        {/* Right Panel (Form) */}
+        {/* Right Panel */}
         <div className="md:w-4/6 w-full bg-white text-gray-900 flex flex-col justify-center items-center p-8 md:p-16">
           {isSignIn ? (
             <>
@@ -170,14 +163,7 @@ const AuthForm = () => {
                   placeholder="Password"
                   className="w-full px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
                 />
-                <select
-                  id="signup-role"
-                  className="w-full px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
-                  defaultValue="User"
-                >
-                  <option value="User">User</option>
-                  <option value="Admin">Admin</option>
-                </select>
+                {/* Removed role select */}
                 <button
                   type="submit"
                   className="bg-gradient-to-r from-green-400 to-teal-400 text-white px-6 py-2 rounded-full w-full hover:from-green-500 hover:to-teal-500 transition-all"
