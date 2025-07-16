@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL ||"https://compile-code-qzk2.vercel.app",
     credentials: true,
   })
 );
