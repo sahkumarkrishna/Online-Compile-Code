@@ -14,10 +14,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://compile-code-qzk2.vercel.app",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
+
 
 // Parse JSON
 app.use(express.json());
