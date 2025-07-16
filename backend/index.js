@@ -13,13 +13,11 @@ connectDB();
 
 const app = express();
 
-// Enable CORS
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-     credentials: true, // allow cookies/auth if needed
-  })
-);
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "https://help-code-omega.vercel.app",
+  credentials: true,
+}));
 
 // Parse JSON
 app.use(express.json());
