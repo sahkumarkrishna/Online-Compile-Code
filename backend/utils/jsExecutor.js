@@ -1,18 +1,11 @@
 const fs = require("fs");
-const path = require("path");
+const os = require("os");
 const { v4: uuid } = require("uuid");
 const { exec } = require("child_process");
 
-// Ensure temp directory exists
-const tempDir = path.join(__dirname, "../temp");
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir);
-}
-
-// Create temporary source file
+// Create temporary source file in system temp directory
 const createTempFile = (extension, code) => {
-  const filename = `${uuid()}.${extension}`;
-  const filePath = path.join(tempDir, filename);
+  const filePath = `${os.tmpdir()}/${uuid()}.${extension}`;
   fs.writeFileSync(filePath, code);
   return filePath;
 };
@@ -48,7 +41,7 @@ exports.runJavaScript = async (code) => {
         output += args.join(" ") + "\n";
       };
 
-      eval(code); // ⚠️ Not safe for production
+      eval(code); // ⚠️ Not safe for untrusted code
 
       console.log = originalLog;
 
@@ -103,9 +96,10 @@ exports.runC_CPP = async (code, language) => {
   const outputPath = filePath.replace(`.${extension}`, "");
 
   return new Promise((resolve, reject) => {
-    const compileCmd = language === "c"
-      ? `gcc "${filePath}" -o "${outputPath}"`
-      : `g++ "${filePath}" -o "${outputPath}"`;
+    const compileCmd =
+      language === "c"
+        ? `gcc "${filePath}" -o "${outputPath}"`
+        : `g++ "${filePath}" -o "${outputPath}"`;
 
     exec(compileCmd, (err, stdout, stderr) => {
       if (err || stderr) {
@@ -139,8 +133,8 @@ exports.runC_CPP = async (code, language) => {
 // ------------------ Java ------------------
 exports.runJava = async (code) => {
   const filePath = createTempFile("java", code);
-  const dir = path.dirname(filePath);
-  const className = path.basename(filePath, ".java");
+  const className = filePath.split("/").pop().replace(".java", "");
+  const dir = os.tmpdir();
 
   return new Promise((resolve, reject) => {
     exec(`javac "${filePath}"`, (err, stdout, stderr) => {
