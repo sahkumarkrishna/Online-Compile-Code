@@ -5,9 +5,14 @@ const jwt = require('jsonwebtoken');
 // Signup
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
+
+  if (!name || !email || !password)
+    return res.status(400).json({ message: 'All fields are required' });
+
   try {
     let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: 'User already exists' });
+    if (user)
+      return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     user = new User({ name, email, password: hashedPassword });
@@ -15,7 +20,7 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
-    console.error(err);
+    console.error("Signup error:", err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -23,12 +28,19 @@ exports.signup = async (req, res) => {
 // Login
 exports.login = async (req, res) => {
   const { email, password } = req.body;
+  console.log("Login request:", req.body); // 🧪 Debug log
+
+  if (!email || !password)
+    return res.status(400).json({ message: 'Email and password are required' });
+
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user)
+      return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch)
+      return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign(
       { userId: user._id },
@@ -41,12 +53,12 @@ exports.login = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Logout (placeholder)
+// Logout (optional)
 exports.logout = (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
@@ -57,26 +69,21 @@ exports.updateProfile = async (req, res) => {
     const { email, username, password: newPassword, currentPassword } = req.body;
     const userId = req.id;
 
-    if (!currentPassword) {
+    if (!currentPassword)
       return res.status(400).json({ message: "Current password is required", success: false });
-    }
 
     const user = await User.findById(userId).select("+password");
-    if (!user) {
+    if (!user)
       return res.status(404).json({ message: "User not found", success: false });
-    }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
+    if (!isMatch)
       return res.status(401).json({ message: "Incorrect current password", success: false });
-    }
 
     if (username) user.name = username;
     if (email) user.email = email;
-    if (newPassword) {
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password = hashedPassword;
-    }
+    if (newPassword)
+      user.password = await bcrypt.hash(newPassword, 10);
 
     await user.save();
 
