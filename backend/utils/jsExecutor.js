@@ -1,16 +1,23 @@
 const fs = require("fs");
-const os = require("os");
+const path = require("path");
 const { v4: uuid } = require("uuid");
 const { exec } = require("child_process");
 
-// Create temporary source file in system temp directory
+// ✅ Create or ensure temp directory
+const tempDir = path.join(__dirname, "../temp");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir);
+}
+
+// ✅ Create a temporary file with a given extension
 const createTempFile = (extension, code) => {
-  const filePath = `${os.tmpdir()}/${uuid()}.${extension}`;
+  const filename = `${uuid()}.${extension}`;
+  const filePath = path.join(tempDir, filename);
   fs.writeFileSync(filePath, code);
   return filePath;
 };
 
-// Detect available Python command
+// ✅ Detect working Python command (python / python3 / py)
 const detectPythonCommand = () => {
   const candidates = ["python", "python3", "py"];
   return new Promise((resolve, reject) => {
@@ -33,15 +40,15 @@ exports.runJavaScript = async (code) => {
     const startTime = process.hrtime();
     const startMemory = process.memoryUsage().rss;
 
-    try {
-      let output = "";
-      const originalLog = console.log;
+    let output = "";
+    const originalLog = console.log;
 
+    try {
       console.log = (...args) => {
         output += args.join(" ") + "\n";
       };
 
-      eval(code); // ⚠️ Not safe for untrusted code
+      eval(code); // ⚠️ Only for controlled input
 
       console.log = originalLog;
 
@@ -75,9 +82,8 @@ exports.runPython = async (code) => {
       const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
       const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
 
-      if (err || stderr) {
-        const errorMsg = stderr || err.message;
-        return reject(new Error("Python Execution Error: " + errorMsg));
+      if (err) {
+        return reject(new Error("Python Execution Error: " + (stderr || err.message)));
       }
 
       resolve({
@@ -95,16 +101,18 @@ exports.runC_CPP = async (code, language) => {
   const filePath = createTempFile(extension, code);
   const outputPath = filePath.replace(`.${extension}`, "");
 
+  // ✅ Add MinGW path (Update if needed)
+  const mingwPath = "C:\\MinGW\\bin";
+  process.env.PATH = `${mingwPath};${process.env.PATH}`;
+
   return new Promise((resolve, reject) => {
-    const compileCmd =
-      language === "c"
-        ? `gcc "${filePath}" -o "${outputPath}"`
-        : `g++ "${filePath}" -o "${outputPath}"`;
+    const compileCmd = language === "c"
+      ? `gcc "${filePath}" -o "${outputPath}"`
+      : `g++ "${filePath}" -o "${outputPath}"`;
 
     exec(compileCmd, (err, stdout, stderr) => {
-      if (err || stderr) {
-        const errorMsg = stderr || err.message;
-        return reject(new Error(`${language.toUpperCase()} Compilation Error: ${errorMsg}`));
+      if (err) {
+        return reject(new Error(`${language.toUpperCase()} Compilation Error: ${stderr || err.message}`));
       }
 
       const startTime = process.hrtime();
@@ -115,9 +123,8 @@ exports.runC_CPP = async (code, language) => {
         const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
         const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
 
-        if (err2 || stderr2) {
-          const errorMsg = stderr2 || err2.message;
-          return reject(new Error(`${language.toUpperCase()} Runtime Error: ${errorMsg}`));
+        if (err2) {
+          return reject(new Error(`${language.toUpperCase()} Runtime Error: ${stderr2 || err2.message}`));
         }
 
         resolve({
@@ -132,15 +139,17 @@ exports.runC_CPP = async (code, language) => {
 
 // ------------------ Java ------------------
 exports.runJava = async (code) => {
-  const filePath = createTempFile("java", code);
-  const className = filePath.split("/").pop().replace(".java", "");
-  const dir = os.tmpdir();
+  const match = code.match(/public\s+class\s+([A-Za-z_][A-Za-z0-9_]*)/);
+  const className = match ? match[1] : "Main";
+
+  const filePath = path.join(tempDir, `${className}.java`);
+  fs.writeFileSync(filePath, code);
+  const dir = path.dirname(filePath);
 
   return new Promise((resolve, reject) => {
     exec(`javac "${filePath}"`, (err, stdout, stderr) => {
-      if (err || stderr) {
-        const errorMsg = stderr || err.message;
-        return reject(new Error("Java Compilation Error: " + errorMsg));
+      if (err) {
+        return reject(new Error("Java Compilation Error: " + (stderr || err.message)));
       }
 
       const startTime = process.hrtime();
@@ -151,9 +160,8 @@ exports.runJava = async (code) => {
         const executionTime = `${(sec * 1e3 + nano / 1e6).toFixed(2)}ms`;
         const memoryUsed = `${((process.memoryUsage().rss - startMemory) / 1024 / 1024).toFixed(2)}MB`;
 
-        if (err2 || stderr2) {
-          const errorMsg = stderr2 || err2.message;
-          return reject(new Error("Java Runtime Error: " + errorMsg));
+        if (err2) {
+          return reject(new Error("Java Runtime Error: " + (stderr2 || err2.message)));
         }
 
         resolve({
