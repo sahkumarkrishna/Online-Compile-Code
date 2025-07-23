@@ -1,7 +1,13 @@
-const fs = require("fs");
-const path = require("path");
-const { v4: uuid } = require("uuid");
-const { exec } = require("child_process");
+import fs from "fs";
+import path from "path";
+import { v4 as uuid } from "uuid";
+import { exec } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// Handle __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const tempDir = path.join(__dirname, "temp");
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -27,7 +33,7 @@ const detectPythonCommand = () => {
   });
 };
 
-exports.runJavaScript = async (code) => {
+export const runJavaScript = async (code) => {
   return new Promise((resolve, reject) => {
     try {
       const start = process.hrtime();
@@ -51,7 +57,7 @@ exports.runJavaScript = async (code) => {
   });
 };
 
-exports.runPython = async (code) => {
+export const runPython = async (code) => {
   const filePath = createTempFile("py", code);
   const python = await detectPythonCommand();
   return new Promise((resolve, reject) => {
@@ -69,7 +75,7 @@ exports.runPython = async (code) => {
   });
 };
 
-exports.runC_CPP = async (code, language) => {
+export const runC_CPP = async (code, language) => {
   const ext = language === "c" ? "c" : "cpp";
   const filePath = createTempFile(ext, code);
   const outPath = filePath.replace(`.${ext}`, "");
@@ -92,7 +98,7 @@ exports.runC_CPP = async (code, language) => {
   });
 };
 
-exports.runJava = async (code) => {
+export const runJava = async (code) => {
   const className = (code.match(/public\s+class\s+(\w+)/) || [])[1] || "Main";
   const filePath = path.join(tempDir, `${className}.java`);
   fs.writeFileSync(filePath, code);

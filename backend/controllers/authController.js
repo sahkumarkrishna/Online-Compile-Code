@@ -1,9 +1,9 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 // Signup
-exports.signup = async (req, res) => {
+export const signup = async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password)
@@ -26,9 +26,8 @@ exports.signup = async (req, res) => {
 };
 
 // Login
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   const { email, password } = req.body;
-
 
   if (!email || !password)
     return res.status(400).json({ message: 'Email and password are required' });
@@ -53,18 +52,17 @@ exports.login = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
-    
     res.status(500).json({ message: 'Server error' });
   }
 };
 
 // Logout (optional)
-exports.logout = (req, res) => {
+export const logout = (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
-// Profile Update
-exports.updateProfile = async (req, res) => {
+// Update Profile
+export const updateProfile = async (req, res) => {
   try {
     const { email, username, password: newPassword, currentPassword } = req.body;
     const userId = req.id;

@@ -1,8 +1,9 @@
-const express = require("express");
+import express from 'express';
+import { compileCode } from '../controllers/compileController.js';
+
 const router = express.Router();
-const { compileCode } = require("../controllers/compileController");
 
-// Route: POST /api/compile
-router.post("/compile", compileCode);
+// POST /api/compile
+router.post('/compile', compileCode);
 
-module.exports = router;
+export default router;

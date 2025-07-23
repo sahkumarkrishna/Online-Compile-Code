@@ -1,7 +1,9 @@
-const Compile = require("../models/Compile");
-const { runJavaScript, runPython, runC_CPP, runJava } = require("../utils/jsExecutor");
+// Importing modules using ES Module syntax
+import Compile from "../models/Compile.js";
+import { runJavaScript, runPython, runC_CPP, runJava } from "../utils/jsExecutor.js";
 
-exports.compileCode = async (req, res) => {
+// Controller function
+export const compileCode = async (req, res) => {
   const { language, code } = req.body;
 
   if (!language || !code) {
@@ -34,14 +36,14 @@ exports.compileCode = async (req, res) => {
       code,
       output: execRes.stdout,
       executionTime: execRes.executionTime,
-      memoryUsed: execRes.memoryUsed
+      memoryUsed: execRes.memoryUsed,
     });
 
     res.json({
       success: true,
       output: compiled.output,
       executionTime: compiled.executionTime,
-      memoryUsed: compiled.memoryUsed
+      memoryUsed: compiled.memoryUsed,
     });
   } catch (err) {
     res.status(400).json({ success: false, error: err.toString() });
