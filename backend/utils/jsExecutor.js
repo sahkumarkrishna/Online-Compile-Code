@@ -102,11 +102,19 @@ export const runJava = async (code) => {
   const className = (code.match(/public\s+class\s+(\w+)/) || [])[1] || "Main";
   const filePath = path.join(tempDir, `${className}.java`);
   fs.writeFileSync(filePath, code);
+
   return new Promise((resolve, reject) => {
     exec(`javac "${filePath}"`, (err, _, stderr) => {
-      if (err) return reject("Java Compilation Error: " + stderr);
+      if (err) {
+        if (stderr.includes("javac: not found") || err.message.includes("javac")) {
+          return reject("Java Compiler (javac) not found. Please install JDK.");
+        }
+        return reject("Java Compilation Error: " + stderr);
+      }
+
       const start = process.hrtime();
       const startMem = process.memoryUsage().rss;
+
       exec(`java -cp "${tempDir}" ${className}`, (err2, stdout, stderr2) => {
         const [s, ns] = process.hrtime(start);
         if (err2) return reject("Java Runtime Error: " + stderr2);
