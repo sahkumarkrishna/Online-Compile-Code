@@ -9,9 +9,11 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Ensure temp directory exists
 const tempDir = path.join(__dirname, "temp");
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
+// Create temp file
 const createTempFile = (extension, code) => {
   const filename = `${uuid()}.${extension}`;
   const filePath = path.join(tempDir, filename);
@@ -19,6 +21,7 @@ const createTempFile = (extension, code) => {
   return filePath;
 };
 
+// Detect Python command
 const detectPythonCommand = () => {
   const candidates = ["python", "python3", "py"];
   return new Promise((resolve, reject) => {
@@ -33,18 +36,23 @@ const detectPythonCommand = () => {
   });
 };
 
+// JavaScript Runner
 export const runJavaScript = async (code) => {
   return new Promise((resolve, reject) => {
     try {
       const start = process.hrtime();
       const startMem = process.memoryUsage().rss;
       let output = "";
-      const log = console.log;
+
+      const originalLog = console.log;
       console.log = (...args) => {
         output += args.join(" ") + "\n";
       };
-      eval(code);
-      console.log = log;
+
+      eval(code); // CAUTION: Eval can be unsafe if user input is not sanitized
+
+      console.log = originalLog;
+
       const [s, ns] = process.hrtime(start);
       resolve({
         stdout: output.trim() || "No output",
@@ -57,6 +65,7 @@ export const runJavaScript = async (code) => {
   });
 };
 
+// Python Runner
 export const runPython = async (code) => {
   const filePath = createTempFile("py", code);
   const python = await detectPythonCommand();
@@ -75,6 +84,7 @@ export const runPython = async (code) => {
   });
 };
 
+// C/C++ Runner
 export const runC_CPP = async (code, language) => {
   const ext = language === "c" ? "c" : "cpp";
   const filePath = createTempFile(ext, code);
@@ -98,7 +108,8 @@ export const runC_CPP = async (code, language) => {
   });
 };
 
-exports.runJava = async (code) => {
+// Java Runner
+export const runJava = async (code) => {
   const className = (code.match(/public\s+class\s+(\w+)/) || [])[1] || "Main";
   const filePath = path.join(tempDir, `${className}.java`);
   fs.writeFileSync(filePath, code);
