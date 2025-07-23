@@ -3,12 +3,14 @@ const { runJavaScript, runPython, runC_CPP, runJava } = require("../utils/jsExec
 
 exports.compileCode = async (req, res) => {
   const { language, code } = req.body;
+
   if (!language || !code) {
     return res.status(400).json({ success: false, error: "Missing language or code" });
   }
 
   try {
     let execRes;
+
     switch (language) {
       case "javascript":
         execRes = await runJavaScript(code);
@@ -30,18 +32,17 @@ exports.compileCode = async (req, res) => {
     const compiled = await Compile.create({
       language,
       code,
-      output: execRes.stdout.trim(),
+      output: execRes.stdout,
       executionTime: execRes.executionTime,
       memoryUsed: execRes.memoryUsed
     });
 
-    res.json({ 
+    res.json({
       success: true,
       output: compiled.output,
       executionTime: compiled.executionTime,
       memoryUsed: compiled.memoryUsed
     });
-
   } catch (err) {
     res.status(400).json({ success: false, error: err.toString() });
   }
