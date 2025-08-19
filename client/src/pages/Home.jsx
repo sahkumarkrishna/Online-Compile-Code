@@ -52,10 +52,11 @@ const Home = () => {
   return (
     <div className="min-h-screen text-gray-900">
       {/* Hero Section */}
-      <section className="flex flex-col-reverse lg:flex-row items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 gap-12">
+      <section className="flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 gap-12">
+
         <div className="w-full lg:w-1/2 space-y-6">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
-            <span className="text-green-600">CompileCode</span>
+            <span className="text-green-600">OnlineCompilerCode</span>
             <br />
             Power Up Your Coding Experience
           </h1>
@@ -66,24 +67,11 @@ const Home = () => {
             platform.
           </p>
           <p className="text-gray-600 text-sm md:text-base">
-            Whether you're coding in Python, C++, Java, or JavaScript —
-            CompileCode is built to support your workflow and boost your
+            Whether you're coding in Python, C++, C, Java, or JavaScript —
+            OnlineCompilerCode is built to support your workflow and boost your
             productivity.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              to="/compileCode"
-              className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition font-medium text-center"
-            >
-              Start Coding Now
-            </Link>
-            <Link
-              to="/watchDemo"
-              className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition font-medium text-center"
-            >
-              Watch Demo
-            </Link>
-          </div>
+
           <p className="text-xs text-gray-500 mt-3">
             No installation required. Runs in your browser.
           </p>
@@ -99,18 +87,18 @@ const Home = () => {
             src="/vscode.png"
             alt="VS Code editor preview"
             onLoad={() => setIsImageLoaded(true)}
-            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${
-              isImageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${isImageLoaded ? "opacity-100" : "opacity-0"
+              }`}
           />
         </div>
       </section>
 
       {/* About Section */}
+      {/* About Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-20 flex flex-col lg:flex-row items-center gap-12">
-        <div className="w-full lg:w-1/2 space-y-6">
+        <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600">
-            About CompileCode
+            About OnlineCompilerCode
           </h2>
           <p className="text-gray-700 text-base leading-relaxed">
             At <strong>CompileCode</strong>, we believe that coding should be
@@ -146,18 +134,37 @@ const Home = () => {
             </Link>{" "}
             — it's fast, free, and forever developer-friendly.
           </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
+            <Link
+              to="/compileCode"
+              className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition font-medium text-center"
+            >
+              Start Coding Now
+            </Link>
+            <Link
+              to="/watchDemo"
+              className="bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition font-medium text-center"
+            >
+              Watch Demo
+            </Link>
+          </div>
         </div>
+
+        {/* Image */}
         <div className="w-full lg:w-1/2">
           <img
             src="/About.avif"
-            alt="Coding illustration"
-            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${
-              isImageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            alt="Illustration showing coding and collaboration on CompileCode"
+            onLoad={() => setIsImageLoaded(true)}
+            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${isImageLoaded ? "opacity-100" : "opacity-0"
+              }`}
           />
         </div>
       </section>
 
+      
       {/* Features Section */}
       <section
         id="about"
@@ -165,7 +172,7 @@ const Home = () => {
       >
         <div className="w-full lg:w-1/2 space-y-8">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600">
-            Features of CompileCode
+            Features of OnlineCompilerCode
           </h2>
           <div className="space-y-6">
             {features.map((f, i) => (
@@ -182,9 +189,8 @@ const Home = () => {
           <img
             src="/vscode.png"
             alt="CompileCode Features"
-            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${
-              isImageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${isImageLoaded ? "opacity-100" : "opacity-0"
+              }`}
           />
         </div>
       </section>
@@ -206,9 +212,8 @@ const Home = () => {
                   {question}
                 </h3>
                 <div
-                  className={`text-green-600 text-xl transform transition-transform duration-300 ${
-                    openIndex === idx ? "rotate-180" : ""
-                  }`}
+                  className={`text-green-600 text-xl transform transition-transform duration-300 ${openIndex === idx ? "rotate-180" : ""
+                    }`}
                 >
                   <BiSolidChevronDown />
                 </div>

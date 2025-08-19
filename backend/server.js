@@ -16,9 +16,10 @@ const _dirname = path.resolve()
 
 // Initialize Express app
 const app = express();
+//"https://online-compile-code-1.onrender.com "
 
 // Middlewares
-app.use(cors({ origin: "https://online-compile-code-1.onrender.com ",
+app.use(cors({ origin: "http://localhost:5173",
    credentials: true }));
 app.use(express.json());
 

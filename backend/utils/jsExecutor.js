@@ -14,12 +14,25 @@ const tempDir = path.join(__dirname, "temp");
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
 // Create temp file
-const createTempFile = (extension, code) => {
-  const filename = `${uuid()}.${extension}`;
+const createTempFile = (extension, code, className = null) => {
+  let filename;
+
+  if (extension === "java" && className) {
+    filename = `${className}.java`; // Java requires filename = classname
+  } else {
+    filename = `${uuid()}.${extension}`;
+  }
+
   const filePath = path.join(tempDir, filename);
   fs.writeFileSync(filePath, code);
   return filePath;
 };
+
+// Cleanup file (optional)
+const cleanupFile = (filePath) => {
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+};
+
 
 // Detect Python command
 const detectPythonCommand = () => {
@@ -108,23 +121,41 @@ export const runC_CPP = async (code, language) => {
   });
 };
 
-// Java Runner
 export const runJava = async (code) => {
-  const className = (code.match(/public\s+class\s+(\w+)/) || [])[1] || "Main";
-  const filePath = path.join(tempDir, `${className}.java`);
-  fs.writeFileSync(filePath, code);
+  const match = code.match(/public\s+class\s+(\w+)/);
+  const className = match ? match[1] : "Main";
+
+  // Create temp .java file
+  const filePath = createTempFile("java", code, className);
+
   return new Promise((resolve, reject) => {
-    exec(`javac "${filePath}"`, (err, _, stderr) => {
-      if (err) return reject("Java Compilation Error: " + stderr);
+    // Compile Java
+    exec(`javac "${filePath}"`, (err, stdout, stderr) => {
+      if (err) {
+        cleanupFile(filePath);
+        return reject("Java Compilation Error:\n" + (stderr || stdout));
+      }
+
       const start = process.hrtime();
       const startMem = process.memoryUsage().rss;
-      exec(`java -cp "${tempDir}" ${className}`, (err2, stdout, stderr2) => {
+
+      // Run Java program
+      exec(`java -cp "${tempDir}" ${className}`, (err2, stdout2, stderr2) => {
         const [s, ns] = process.hrtime(start);
-        if (err2) return reject("Java Runtime Error: " + stderr2);
+
+        // Cleanup files
+        cleanupFile(filePath);
+        const classFile = path.join(tempDir, `${className}.class`);
+        cleanupFile(classFile);
+
+        if (err2) {
+          return reject("Java Runtime Error:\n" + (stderr2 || stdout2));
+        }
+
         resolve({
-          stdout: stdout.trim() || "No output",
-          executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)}ms`,
-          memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)}MB`,
+          stdout: stdout2.trim() || "No output",
+          executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)} ms`,
+          memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)} MB`,
         });
       });
     });
