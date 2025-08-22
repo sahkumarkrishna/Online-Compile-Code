@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -9,10 +9,7 @@ const AuthForm = () => {
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn) navigate("/");
-  }, [navigate]);
+  
 
   const handleSignIn = async (e) => {
     e.preventDefault();

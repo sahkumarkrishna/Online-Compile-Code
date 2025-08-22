@@ -5,6 +5,7 @@ const compileSchema = new mongoose.Schema(
   {
     language: { type: String, required: true },
     code: { type: String, required: true },
+    input: { type: String }, // Added input field
     output: String,
     executionTime: String,
     memoryUsed: String,

@@ -1,91 +1,134 @@
-import { Link } from "react-router-dom";
-import { Code } from "lucide-react";
+import React, { useState } from "react";
+import Editor from "@monaco-editor/react";
+import axios from "axios";
+import toast from "react-hot-toast";
 
-const features = [
-  {
-    icon: <Code size={48} />,
-    title: "Smart Code Editor",
-    description: "Write code effortlessly with intelligent autocomplete and error detection.",
-    to: "/editor",
-  },
-];
+const defaultCode = {
+  javascript: `// Write JS code here\nconsole.log("Hello, world!");`,
+  python: `# Write Python code here\nprint("Hello, world!")`,
+  c: `#include <stdio.h>\nint main() {\n  printf("Hello, world!\\n");\n  return 0;\n}`,
+  cpp: `#include <iostream>\nusing namespace std;\nint main() {\n  cout << "Hello, world!" << endl;\n  return 0;\n}`,
+  java: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello, world!");\n  }\n}`,
+};
 
 const CompileCode = () => {
+  const [language, setLanguage] = useState("javascript");
+  const [code, setCode] = useState(defaultCode.javascript);
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_COMPILE_URL;
+
+  const handleEditorChange = (value) => setCode(value);
+
+  const handleLanguageChange = (e) => {
+    const lang = e.target.value;
+    setLanguage(lang);
+    setCode(defaultCode[lang] || "");
+    setOutput("");
+  };
+
+  const runCode = async () => {
+    setLoading(true);
+    setOutput("");
+    try {
+      const res = await axios.post(`${API_URL}compile`, { language, code, input });
+      const data = res.data;
+      const runOutput = `Output:\n${data.output}\n\nExecution Time: ${data.executionTime}\nMemory Used: ${data.memoryUsed}`;
+      setOutput(runOutput);
+
+      const savedSnippets = JSON.parse(localStorage.getItem("codeSnippets")) || [];
+      savedSnippets.unshift({
+        title: `Snippet ${new Date().toLocaleString()}`,
+        language,
+        code,
+        input,
+        output: runOutput,
+        saved: false,
+      });
+      localStorage.setItem("codeSnippets", JSON.stringify(savedSnippets));
+
+      toast.success("Saved to history!");
+    } catch (err) {
+      setOutput("Error: " + (err.response?.data?.error || err.message));
+      toast.error("Failed to run code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen p-4 sm:p-8 md:p-12 lg:p-16 flex flex-col items-center">
-      <h1 className="text-3xl sm:text-xl md:text-5xl font-extrabold text-indigo-700 mb-6 tracking-tight drop-shadow-lg text-center md:text-left">
-        Experience Next-Level Coding with CompileCode
-      </h1>
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white p-4 md:p-6 lg:p-10">
+      {/* Controls */}
+      <div className="flex flex-col lg:flex-row lg:items-end gap-4 mb-4">
+        {/* Language Selector */}
+        <div className="flex-1 lg:max-w-xs">
+          <label className="block mb-1 text-sm font-medium">Language</label>
+          <select
+            value={language}
+            onChange={handleLanguageChange}
+            className="w-full bg-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+          </select>
+        </div>
 
-      <p className="max-w-2xl mx-auto md:mx-0 text-gray-700 mb-10 text-base sm:text-lg md:text-lg leading-relaxed text-center md:text-left">
-        Your all-in-one online code editor with cloud compilation, live terminal, and powerful collaboration tools.
-      </p>
+        {/* Input Field */}
+        <div className="flex-1 lg:max-w-2xl">
+          <label className="block mb-1 text-sm font-medium">Input (stdin)</label>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Enter input for your code"
+            className="w-full bg-gray-800 px-3 py-2 rounded text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
 
-      <div className="backdrop-blur-md rounded-3xl shadow-2xl w-full max-w-7xl p-6 sm:p-10 lg:p-16">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-12 md:gap-16">
-          <div className="flex-1 text-left">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-7 max-w-2xl mx-auto md:mx-0">
-              {features.map(({ icon, title, description, to }) => (
-                <ActionCard
-                  key={title}
-                  icon={icon}
-                  title={title}
-                  description={description}
-                  to={to}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 w-full max-w-md md:max-w-none">
-            <img
-              src="/Code.webp"
-              alt="AI-powered code editor"
-              className="rounded-3xl shadow-xl w-full object-cover"
-              loading="lazy"
-            />
-          </div>
+        {/* Run Button */}
+        <div className="lg:flex-none lg:mt-0 mt-2 w-full lg:w-auto">
+          <button
+            onClick={runCode}
+            disabled={loading}
+            className="w-full lg:w-auto bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded font-semibold disabled:opacity-50"
+          >
+            {loading ? "Running..." : "Run Code"}
+          </button>
         </div>
       </div>
 
-      <section className="max-w-6xl mt-20 px-4 sm:px-6 md:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-pink-700 mb-12 drop-shadow-md">
-          Why Developers Love CompileCode
-        </h2>
+      {/* Code Editor */}
+      <div className="w-full rounded overflow-hidden shadow-lg mb-4">
+        <Editor
+          height="50vh"
+          language={language}
+          value={code}
+          onChange={handleEditorChange}
+          theme="vs-dark"
+          options={{
+            fontSize: 16,
+            minimap: { enabled: false },
+            wordWrap: "on",
+            automaticLayout: true,
+          }}
+        />
+      </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
-          <FeatureCard emoji="🚀" title="Blazing Fast Performance">
-            Experience near-instantaneous code compilation and real-time feedback with our optimized infrastructure.
-          </FeatureCard>
-          <FeatureCard emoji="🤝" title="Seamless Collaboration">
-            Collaborate in real-time with teammates or mentors. Share, review, and debug code together with ease.
-          </FeatureCard>
-          <FeatureCard emoji="🔒" title="Privacy & Security">
-            Your code stays safe with us. We use encryption and follow industry best practices to secure your work.
-          </FeatureCard>
-        </div>
-      </section>
+      {/* Output Section */}
+      <div className="w-full bg-white text-black rounded shadow-md p-6 overflow-x-auto">
+        <h2 className="text-xl font-bold mb-2">Language: {language.toUpperCase()}</h2>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">Output:</h3>
+        <pre className="whitespace-pre-wrap break-words bg-gray-100 p-3 rounded text-sm max-h-96 overflow-y-auto">
+          {output || "No output yet."}
+        </pre>
+      </div>
     </div>
   );
 };
-
-const ActionCard = ({ icon, title, description, to }) => (
-  <Link
-    to={to}
-    className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 w-full hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition duration-300 flex flex-col items-center text-center"
-  >
-    <div className="mb-5">{icon}</div>
-    <h3 className="text-xl sm:text-2xl font-semibold mb-3">{title}</h3>
-    <p className="text-sm sm:text-base leading-relaxed">{description}</p>
-  </Link>
-);
-
-const FeatureCard = ({ emoji, title, children }) => (
-  <div className="flex-1 max-w-md rounded-2xl shadow-lg p-8 hover:shadow-2xl transition duration-300">
-    <div className="text-6xl mb-6">{emoji}</div>
-    <h3 className="text-2xl font-semibold mb-4">{title}</h3>
-    <p className="leading-relaxed">{children}</p>
-  </div>
-);
 
 export default CompileCode;

@@ -49,8 +49,9 @@ const detectPythonCommand = () => {
   });
 };
 
+
 // JavaScript Runner
-export const runJavaScript = async (code) => {
+export const runJavaScript = async (code, input = "") => {
   return new Promise((resolve, reject) => {
     try {
       const start = process.hrtime();
@@ -62,15 +63,20 @@ export const runJavaScript = async (code) => {
         output += args.join(" ") + "\n";
       };
 
-      eval(code); // CAUTION: Eval can be unsafe if user input is not sanitized
+      // Provide input via a simple prompt simulation
+      const originalPrompt = global.prompt;
+      global.prompt = () => input; // always return the provided input
+
+      eval(code); // CAUTION: eval can be unsafe
 
       console.log = originalLog;
+      global.prompt = originalPrompt;
 
       const [s, ns] = process.hrtime(start);
       resolve({
         stdout: output.trim() || "No output",
-        executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)}ms`,
-        memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)}MB`,
+        executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)} ms`,
+        memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)} MB`,
       });
     } catch (err) {
       reject("JavaScript Error: " + err.message);
@@ -79,57 +85,71 @@ export const runJavaScript = async (code) => {
 };
 
 // Python Runner
-export const runPython = async (code) => {
+export const runPython = async (code, input = "") => {
   const filePath = createTempFile("py", code);
   const python = await detectPythonCommand();
+
   return new Promise((resolve, reject) => {
     const start = process.hrtime();
     const startMem = process.memoryUsage().rss;
-    exec(`${python} "${filePath}"`, (err, stdout, stderr) => {
+
+    // Pass input via stdin
+    const child = exec(`${python} "${filePath}"`, (err, stdout, stderr) => {
       const [s, ns] = process.hrtime(start);
+      cleanupFile(filePath);
       if (err) return reject("Python Error: " + (stderr || err.message));
       resolve({
         stdout: stdout.trim() || "No output",
-        executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)}ms`,
-        memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)}MB`,
+        executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)} ms`,
+        memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)} MB`,
       });
     });
+
+    if (input) {
+      child.stdin.write(input);
+    }
+    child.stdin.end();
   });
 };
 
 // C/C++ Runner
-export const runC_CPP = async (code, language) => {
+export const runC_CPP = async (code, language, input = "") => {
   const ext = language === "c" ? "c" : "cpp";
   const filePath = createTempFile(ext, code);
   const outPath = filePath.replace(`.${ext}`, "");
+  const compiler = language === "c" ? "gcc" : "g++";
+
   return new Promise((resolve, reject) => {
-    const compiler = language === "c" ? "gcc" : "g++";
     exec(`${compiler} "${filePath}" -o "${outPath}"`, (err, _, stderr) => {
       if (err) return reject("Compilation Error: " + stderr);
+
       const start = process.hrtime();
       const startMem = process.memoryUsage().rss;
-      exec(`"${outPath}"`, (err2, stdout, stderr2) => {
+      const child = exec(`"${outPath}"`, (err2, stdout, stderr2) => {
         const [s, ns] = process.hrtime(start);
+        cleanupFile(filePath);
+        cleanupFile(outPath);
         if (err2) return reject("Runtime Error: " + stderr2);
         resolve({
           stdout: stdout.trim() || "No output",
-          executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)}ms`,
-          memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)}MB`,
+          executionTime: `${(s * 1e3 + ns / 1e6).toFixed(2)} ms`,
+          memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)} MB`,
         });
       });
+
+      if (input) child.stdin.write(input);
+      child.stdin.end();
     });
   });
 };
 
-export const runJava = async (code) => {
+// Java Runner
+export const runJava = async (code, input = "") => {
   const match = code.match(/public\s+class\s+(\w+)/);
   const className = match ? match[1] : "Main";
-
-  // Create temp .java file
   const filePath = createTempFile("java", code, className);
 
   return new Promise((resolve, reject) => {
-    // Compile Java
     exec(`javac "${filePath}"`, (err, stdout, stderr) => {
       if (err) {
         cleanupFile(filePath);
@@ -139,18 +159,14 @@ export const runJava = async (code) => {
       const start = process.hrtime();
       const startMem = process.memoryUsage().rss;
 
-      // Run Java program
-      exec(`java -cp "${tempDir}" ${className}`, (err2, stdout2, stderr2) => {
+      const child = exec(`java -cp "${tempDir}" ${className}`, (err2, stdout2, stderr2) => {
         const [s, ns] = process.hrtime(start);
 
-        // Cleanup files
+        // Cleanup
         cleanupFile(filePath);
-        const classFile = path.join(tempDir, `${className}.class`);
-        cleanupFile(classFile);
+        cleanupFile(path.join(tempDir, `${className}.class`));
 
-        if (err2) {
-          return reject("Java Runtime Error:\n" + (stderr2 || stdout2));
-        }
+        if (err2) return reject("Java Runtime Error:\n" + (stderr2 || stdout2));
 
         resolve({
           stdout: stdout2.trim() || "No output",
@@ -158,6 +174,9 @@ export const runJava = async (code) => {
           memoryUsed: `${((process.memoryUsage().rss - startMem) / 1024 / 1024).toFixed(2)} MB`,
         });
       });
+
+      if (input) child.stdin.write(input);
+      child.stdin.end();
     });
   });
 };

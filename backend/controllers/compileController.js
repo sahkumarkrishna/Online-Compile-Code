@@ -1,10 +1,8 @@
-// Importing modules using ES Module syntax
 import Compile from "../models/Compile.js";
 import { runJavaScript, runPython, runC_CPP, runJava } from "../utils/jsExecutor.js";
 
-// Controller function
 export const compileCode = async (req, res) => {
-  const { language, code } = req.body;
+  const { language, code, input } = req.body; // Added `input`
 
   if (!language || !code) {
     return res.status(400).json({ success: false, error: "Missing language or code" });
@@ -15,17 +13,17 @@ export const compileCode = async (req, res) => {
 
     switch (language) {
       case "javascript":
-        execRes = await runJavaScript(code);
+        execRes = await runJavaScript(code, input); // pass input
         break;
       case "python":
-        execRes = await runPython(code);
+        execRes = await runPython(code, input);
         break;
       case "c":
       case "cpp":
-        execRes = await runC_CPP(code, language);
+        execRes = await runC_CPP(code, language, input);
         break;
       case "java":
-        execRes = await runJava(code);
+        execRes = await runJava(code, input);
         break;
       default:
         return res.status(400).json({ success: false, error: "Unsupported language" });

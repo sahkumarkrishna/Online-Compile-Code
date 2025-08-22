@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { BiSolidChevronDown } from "react-icons/bi";
 import Loading from "../components/Loading";
+import Feedback from "../pages/Feedback";
+import StatsSection from "./StatsSection";
 
 const Home = () => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -94,84 +96,79 @@ const Home = () => {
       </section>
 
       {/* About Section */}
-      {/* About Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-20 flex flex-col lg:flex-row items-center gap-12">
-        <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600">
-            About OnlineCompilerCode
-          </h2>
-          <p className="text-gray-700 text-base leading-relaxed">
-            At <strong>CompileCode</strong>, we believe that coding should be
-            intuitive, accessible, and seamless—whether you're just starting
-            your journey or you're an experienced developer.
-          </p>
-          <p className="text-gray-700 text-base leading-relaxed">
-            Built with modern developers in mind, CompileCode eliminates the
-            hassle of switching tools or installing compilers.
-          </p>
-          <p className="text-gray-700 text-base leading-relaxed">
-            With features like <strong>real-time previews</strong>,{" "}
-            <strong>intelligent autocompletion</strong>, and{" "}
-            <strong>cloud project storage</strong>, we ensure your workflow
-            stays uninterrupted.
-          </p>
-          <p className="text-gray-700 text-base leading-relaxed">
-            We're constantly rolling out new features based on your feedback—
-            collaborative coding, version control, and new language support.
-          </p>
-          <p className="text-gray-700 text-base leading-relaxed">
-            Whether you're a student, solo developer, or a remote
-            team—CompileCode brings you the tools and speed you need to ship
-            faster and smarter.
-          </p>
-          <p className="text-gray-600 text-sm">
-            Ready to code the future?{" "}
-            <Link
-              to="/dashboard"
-              className="text-green-600 font-medium hover:underline"
-            >
-              Try CompileCode now
-            </Link>{" "}
-            — it's fast, free, and forever developer-friendly.
-          </p>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-20">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600 text-center lg:text-left mb-10">
+          About OnlineCompilerCode
+        </h2>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
-            <Link
-              to="/compileCode"
-              className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition font-medium text-center"
-            >
-              Start Coding Now
-            </Link>
-            <Link
-              to="/watchDemo"
-              className="bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition font-medium text-center"
-            >
-              Watch Demo
-            </Link>
+        {/* Wrapper */}
+        <div className="flex flex-col lg:flex-row items-center gap-12">
+          {/* Text */}
+          <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left order-2 lg:order-1">
+            <p className="text-gray-700 text-base leading-relaxed">
+              At <strong>CompileCode</strong>, we believe that coding should be
+              intuitive, accessible, and seamless—whether you're just starting
+              your journey or you're an experienced developer.
+            </p>
+            <p className="text-gray-700 text-base leading-relaxed">
+              Built with modern developers in mind, CompileCode eliminates the
+              hassle of switching tools or installing compilers.
+            </p>
+            <p className="text-gray-700 text-base leading-relaxed">
+              With features like <strong>real-time previews</strong>,{" "}
+              <strong>intelligent autocompletion</strong>, and{" "}
+              <strong>cloud project storage</strong>, we ensure your workflow
+              stays uninterrupted.
+            </p>
+            <p className="text-gray-700 text-base leading-relaxed">
+              We're constantly rolling out new features based on your feedback—
+              collaborative coding, version control, and new language support.
+            </p>
+            <p className="text-gray-700 text-base leading-relaxed">
+              Whether you're a student, solo developer, or a remote team—
+              CompileCode brings you the tools and speed you need to ship faster
+              and smarter.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
+              <Link
+                to="/CompileCode"
+                className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition font-medium text-center"
+              >
+                Start Coding Now
+              </Link>
+              <Link
+                to="/watchDemo"
+                className="bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition font-medium text-center"
+              >
+                Watch Demo
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Image */}
-        <div className="w-full lg:w-1/2">
-          <img
-            src="/About.avif"
-            alt="Illustration showing coding and collaboration on CompileCode"
-            onLoad={() => setIsImageLoaded(true)}
-            className={`w-full max-w-md sm:max-w-lg lg:max-w-none rounded-xl shadow-2xl border border-gray-200 transition-opacity duration-500 ${isImageLoaded ? "opacity-100" : "opacity-0"
-              }`}
-          />
+          {/* Image */}
+          <div className="w-full lg:w-1/2 flex justify-center order-1 lg:order-2">
+            <img
+              src="/About.avif"
+              alt="About OnlineCompilerCode"
+              className="rounded-2xl shadow-lg w-full max-w-md"
+            />
+          </div>
         </div>
       </section>
 
-      
+
+      <StatsSection />
       {/* Features Section */}
+    
       <section
-        id="about"
-        className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 flex flex-col lg:flex-row items-center gap-12"
+        id=" Features Section"
+        className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 flex flex-col-reverse lg:flex-row items-center gap-12"
       >
-        <div className="w-full lg:w-1/2 space-y-8">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600">
+        {/* Text */}
+        <div className="w-full lg:w-1/2 space-y-8 order-2 lg:order-1">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600 text-center lg:text-left">
             Features of OnlineCompilerCode
           </h2>
           <div className="space-y-6">
@@ -185,7 +182,9 @@ const Home = () => {
             ))}
           </div>
         </div>
-        <div className="w-full lg:w-1/2">
+
+        {/* Image */}
+        <div className="w-full lg:w-1/2 flex justify-center order-1 lg:order-2 mb-6 lg:mb-0">
           <img
             src="/vscode.png"
             alt="CompileCode Features"
@@ -194,6 +193,7 @@ const Home = () => {
           />
         </div>
       </section>
+
 
       {/* FAQ Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-16 bg-green-50 rounded-xl shadow-inner">
@@ -226,7 +226,9 @@ const Home = () => {
             </div>
           ))}
         </div>
+
       </section>
+      <Feedback />
     </div>
   );
 };

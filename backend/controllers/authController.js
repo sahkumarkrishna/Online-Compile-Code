@@ -61,37 +61,38 @@ export const logout = (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
-// Update Profile
+// Update Password Only
 export const updateProfile = async (req, res) => {
   try {
-    const { email, username, password: newPassword, currentPassword } = req.body;
-    const userId = req.id;
+    const { password: newPassword, currentPassword } = req.body;
+    const userId = req.id; // user ID from authentication middleware
 
     if (!currentPassword)
       return res.status(400).json({ message: "Current password is required", success: false });
 
+    if (!newPassword)
+      return res.status(400).json({ message: "New password is required", success: false });
+
+    // Find user with password field
     const user = await User.findById(userId).select("+password");
     if (!user)
       return res.status(404).json({ message: "User not found", success: false });
 
+    // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch)
       return res.status(401).json({ message: "Incorrect current password", success: false });
 
-    if (username) user.name = username;
-    if (email) user.email = email;
-    if (newPassword)
-      user.password = await bcrypt.hash(newPassword, 10);
-
+    // Update password
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     return res.status(200).json({
-      message: "Profile updated successfully",
-      user: { _id: user._id, name: user.name, email: user.email },
+      message: "Password updated successfully",
       success: true,
     });
   } catch (error) {
-    console.error("Update profile error:", error);
-    return res.status(500).json({ message: "Server error during profile update", success: false });
+    console.error("Update password error:", error);
+    return res.status(500).json({ message: "Server error during password update", success: false });
   }
 };

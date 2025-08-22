@@ -1,27 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 
 const USER_API_END_POINT = import.meta.env.VITE_API_BASE_URL;
 
 const Settings = () => {
-  const navigate = useNavigate();
-
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const token = localStorage.getItem("token");
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("token");
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +19,12 @@ const Settings = () => {
       return;
     }
 
-    if (password && password !== confirmPassword) {
+    if (!password) {
+      toast.error("New password cannot be empty");
+      return;
+    }
+
+    if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
@@ -40,10 +33,8 @@ const Settings = () => {
       const response = await axios.put(
         `${USER_API_END_POINT}/update-profile`,
         {
-          username,
-          email,
-          password,
-          currentPassword,
+          password,        // only send new password
+          currentPassword, // send current password for verification
         },
         {
           headers: {
@@ -52,9 +43,7 @@ const Settings = () => {
         }
       );
 
-      toast.success(response.data.message || "Profile updated!");
-      setUsername("");
-      setEmail("");
+      toast.success(response.data.message || "Password updated successfully!");
       setPassword("");
       setConfirmPassword("");
       setCurrentPassword("");
@@ -65,39 +54,9 @@ const Settings = () => {
 
   return (
     <div className="max-w-xl mx-auto py-10 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Update Profile</h2>
-        <button
-          onClick={handleLogout}
-          className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-        >
-          Logout
-        </button>
-      </div>
+      <h2 className="text-2xl font-bold mb-6">Update Password</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-1 font-medium">Username</label>
-          <input
-            type="text"
-            placeholder="New Username"
-            className="w-full border px-4 py-2 rounded"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            type="email"
-            placeholder="New Email"
-            className="w-full border px-4 py-2 rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
         <div>
           <label className="block mb-1 font-medium">New Password</label>
           <input
@@ -106,6 +65,7 @@ const Settings = () => {
             className="w-full border px-4 py-2 rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
 
@@ -117,6 +77,7 @@ const Settings = () => {
             className="w-full border px-4 py-2 rounded"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            required
           />
         </div>
 
@@ -126,7 +87,7 @@ const Settings = () => {
           </label>
           <input
             type="password"
-            placeholder="Enter Current Password to Confirm"
+            placeholder="Enter Current Password"
             className="w-full border px-4 py-2 rounded"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -138,7 +99,7 @@ const Settings = () => {
           type="submit"
           className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
         >
-          Update Profile
+          Update Password
         </button>
       </form>
     </div>

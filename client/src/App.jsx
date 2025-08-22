@@ -4,15 +4,17 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import AuthForm from "./pages/AuthForm";
 import WatchDemo from "./pages/WatchDemo";
-import CodeEditor from "./pages/CodeEditor";
+
 
 import PageNotFound from "../PageNotFound";
-import CompileCode from "./pages/CompileCode";
+
 import Settings from "./pages/Settings";
+import HistoryPage from "./pages/HistoryPage";
 
 // Layouts & Components
 import MainLayout from "./Layouts/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CompileCode from "./pages/CompileCode";
 
 const router = createBrowserRouter([
   {
@@ -23,26 +25,34 @@ const router = createBrowserRouter([
       {
         path: "watchDemo",
         element: (
-          
-            <WatchDemo />
-          
+
+          <WatchDemo />
+
         ),
       },
       {
-        path: "editor",
+        path: "compileCode",
         element: (
           <ProtectedRoute>
-            <CodeEditor />
+            <CompileCode/>
           </ProtectedRoute>
         ),
       },
-   
+
       {
         path: "settings", // ✅ updated to plural
         element: (
           <ProtectedRoute>
             <Settings />
           </ProtectedRoute>
+        ),
+      },
+      {
+        path: "history", // ✅ updated to plural
+        element: (
+
+          < HistoryPage />
+
         ),
       },
     ],
